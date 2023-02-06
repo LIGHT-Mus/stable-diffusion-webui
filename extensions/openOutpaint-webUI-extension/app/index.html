@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en-US">
+	<head>
+		<meta charset="utf-8" />
+		<title>openOutpaint 🐠</title>
+		<!-- CSS Variables -->
+		<link href="css/colors.css?v=3f81e80" rel="stylesheet" />
+		<link href="css/icons.css?v=9ae0466" rel="stylesheet" />
+
+		<link href="css/index.css?v=882f400" rel="stylesheet" />
+		<link href="css/layers.css?v=92c0352" rel="stylesheet" />
+
+		<link href="css/ui/generic.css?v=30837f8" rel="stylesheet" />
+
+		<link href="css/ui/history.css?v=0b03861" rel="stylesheet" />
+		<link href="css/ui/layers.css?v=1d66c2b" rel="stylesheet" />
+		<link href="css/ui/toolbar.css?v=109c78f" rel="stylesheet" />
+
+		<!-- Tool Specific CSS -->
+		<link href="css/ui/tool/dream.css?v=2d8a8ac" rel="stylesheet" />
+		<link href="css/ui/tool/stamp.css?v=6f5ce15" rel="stylesheet" />
+		<link href="css/ui/tool/colorbrush.css?v=57c8be5" rel="stylesheet" />
+
+		<link rel="icon" type="image/x-icon" href="favicon.ico" />
+	</head>
+
+	<body>
+		<!-- Main Toolbar -->
+		<div
+			id="infoContainer"
+			class="floating-window"
+			style="left: 10px; top: 10px">
+			<div id="infoTitleBar" class="draggable floating-window-title">
+				openOutpaint 🐠
+				<div style="flex: 1"></div>
+				<button id="settings-btn" class="ui icon header-button">
+					<div class="icon-settings"></div>
+				</button>
+			</div>
+			<div id="info" class="menu-container" style="min-width: 200px">
+				<label>
+					Host
+					<div class="host-field-wrapper">
+						<input id="host" value="http://127.0.0.1:7860" />
+						<div
+							id="connection-status-indicator"
+							class="connection-status before">
+							<span id="connection-status-indicator-text">Waiting</span>
+						</div>
+					</div>
+				</label>
+
+				<!-- Prompts section -->
+				<button type="button" class="collapsible">Prompts</button>
+				<div class="content prompt">
+					<div class="inputs">
+						<div class="prompt-wrapper">
+							<div class="prompt-indicator positive" title="Prompt"></div>
+							<textarea id="prompt" class="expandable"></textarea>
+						</div>
+						<div class="prompt-wrapper">
+							<div
+								class="prompt-indicator negative"
+								title="Negative Prompt"></div>
+							<textarea id="negPrompt" class="expandable"></textarea>
+						</div>
+						<div class="prompt-wrapper">
+							<div class="prompt-indicator styles" title="Styles"></div>
+							<div id="style-ac-mselect" style="flex-shrink: 1"></div>
+						</div>
+					</div>
+					<div class="prompt-history-wrapper">
+						<div class="prompt-history-container">
+							<div id="prompt-history"></div>
+							<button
+								id="prompt-history-btn"
+								class="prompt-history-btn"></button>
+						</div>
+					</div>
+				</div>
+				<!-- SD section -->
+				<button type="button" class="collapsible">
+					Stable Diffusion settings
+				</button>
+				<div class="content">
+					<label>Model:</label>
+					<div id="models-ac-select"></div>
+					<button id="refreshModelsBtn" onclick="getModels(true)">
+						<img
+							class="refreshbutton"
+							src="./res/icons/refresh-cw.svg"
+							alt="refresh models"
+							title="refresh models" />
+					</button>
+					<label>Sampler:</label>
+					<div id="sampler-ac-select"></div>
+					<label for="seed">Seed (-1 for random):</label>
+					<br />
+					<input
+						type="number"
+						id="seed"
+						onchange="changeSeed()"
+						min="1"
+						max="9999999999"
+						value="-1"
+						step="1" />
+					<br />
+					<input type="checkbox" id="cbxHRFix" onchange="changeHiResFix()" />
+					<label for="cbxHRFix">Apply Txt2Img HRfix</label>
+					<br />
+					<input
+						type="checkbox"
+						id="cbxHRFSquare"
+						onchange="changeHiResSquare()"
+						class="hrfix" />
+					<label for="cbxHRFSquare" class="hrfix">
+						Square Firstpass Aspect
+					</label>
+					<br class="hrfix" />
+					<div id="hrFixScale" class="hrfix"></div>
+					<div id="hrFixLockPx" class="hrfix"></div>
+					<div id="hrFixSteps" class="hrfix"></div>
+					<label id="hrFixLabel" class="hrfix">Choose HRfix upscaler</label>
+					<div id="hrFixUpscaler" class="hrfix"></div>
+					<div id="hrDenoising" class="hrfix"></div>
+					<input
+						type="checkbox"
+						id="cbxRestoreFaces"
+						onchange="changeRestoreFaces()" />
+					<label for="cbxRestoreFaces">Restore Faces</label>
+					<br />
+					<input
+						type="checkbox"
+						id="cbxSyncCursorSize"
+						onchange="changeSyncCursorSize()" />
+					<label for="cbxSyncCursorSize">Sync cursor size</label>
+					<br />
+					<div id="resolution"></div>
+					<div id="steps"></div>
+					<div id="cfgScale"></div>
+					<div id="batchSize"></div>
+					<div id="batchCount"></div>
+					<label for="maskBlur">Mask blur:</label>
+					<span id="maskBlurText"></span>
+					<br />
+					<input
+						type="number"
+						id="maskBlur"
+						name="maskBlur"
+						min="0"
+						max="256"
+						value="0"
+						step="1"
+						onchange="changeMaskBlur()" />
+					<br />
+					<input
+						type="checkbox"
+						id="cbxSmooth"
+						checked
+						onchange="changeSmoothRendering()" />
+					<label for="cbxSmooth">Smooth Rendering</label>
+				</div>
+
+				<!-- Save/load image section -->
+				<button type="button" class="collapsible">Save/Upscaling</button>
+				<div class="content">
+					<button onclick="downloadCanvas()">Save canvas</button>
+					<br />
+					<label>Choose upscaler</label>
+					<div id="upscaler-ac-select"></div>
+					<div id="upscaleX"></div>
+					<button onclick="upscaleAndDownload()">
+						Upscale (might take a sec)
+					</button>
+					<br />
+
+					<button onclick="newImage()">Clear canvas</button>
+				</div>
+				<!-- Debug info -->
+				<button type="button" class="collapsible">Debug info</button>
+				<div id="coords" class="content">
+					<label for="mouseX">mouseX:</label>
+					<span id="mouseX"></span>
+					<br />
+					<label for="mouseY">mouseY:</label>
+					<span id="mouseY"></span>
+					<br />
+					<label for="canvasX">canvasX:</label>
+					<span id="canvasX"></span>
+					<br />
+					<label for="canvasY">canvasY:</label>
+					<span id="canvasY"></span>
+					<br />
+					<label for="snapX">snapX:</label>
+					<span id="snapX"></span>
+					<br />
+					<label for="snapY">snapY:</label>
+					<span id="snapY"></span>
+					<br />
+					<label for="heldButton">Mouse button:</label>
+					<span id="heldButton"></span>
+					<br />
+					<button id="resetToDefaults" onclick="resetToDefaults()">
+						Reset to defaults
+					</button>
+					<button id="toggleDebugBtn" onclick="global.toggledebug()">
+						Toggle Debug
+					</button>
+					<br />
+					<span id="version">
+						<a href="https://github.com/zero01101/openOutpaint" target="_blank">
+							Alpha release v0.0.13
+						</a>
+						<br />
+						<a
+							href="https://github.com/zero01101/openOutpaint/wiki/Manual"
+							target="_blank">
+							User Manual
+						</a>
+					</span>
+					<br />
+					<!-- <hr /> -->
+				</div>
+				<div style="display: flex; align-items: center">
+					<div
+						style="
+							flex: 1;
+							border-top: 1px black solid;
+							margin-right: 10px;
+						"></div>
+					Context Menu
+					<div
+						style="
+							flex: 1;
+							border-top: 1px black solid;
+							margin-left: 10px;
+						"></div>
+				</div>
+				<div id="tool-context" class="context-menu"></div>
+			</div>
+		</div>
+
+		<!-- History -->
+		<div id="ui-history" class="floating-window" style="right: 10px; top: 10px">
+			<div class="draggable floating-window-title">History</div>
+			<div class="menu-container" style="min-width: 200px">
+				<div id="history" class="history"></div>
+				<div class="button-array" style="padding: 10px">
+					<button type="button" onclick="commands.undo()" class="button tool">
+						undo
+					</button>
+					<button type="button" onclick="commands.redo()" class="button tool">
+						redo
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Layers -->
+		<div
+			id="ui-layers"
+			class="floating-window"
+			style="right: 10px; bottom: 10px">
+			<div class="draggable floating-window-title">Layers</div>
+			<div class="menu-container" style="min-width: 200px">
+				<div class="layer-manager">
+					<div id="layer-list" class="layer-list"></div>
+					<div class="ui separator"></div>
+					<div class="layer-list-actions">
+						<button
+							type="button"
+							title="Add Layer"
+							onclick="commands.runCommand('addLayer', 'Added Layer')"
+							class="ui icon button">
+							<div class="icon-file-plus"></div>
+						</button>
+
+						<button
+							type="button"
+							title="Move Layer Up"
+							onclick="commands.runCommand('moveLayer', 'Moved Layer Up',{delta: 1})"
+							class="ui icon button">
+							<div class="icon-chevron-up"></div>
+						</button>
+
+						<button
+							type="button"
+							title="Move Layer Down"
+							onclick="commands.runCommand('moveLayer', 'Moved Layer Down', {delta: -1})"
+							class="ui icon button">
+							<div class="icon-chevron-down"></div>
+						</button>
+
+						<button
+							type="button"
+							title="Merge Layer Down"
+							onclick="commands.runCommand('mergeLayer', 'Merged Layer Down')"
+							class="ui icon button">
+							<div class="icon-chevron-flat-down"></div>
+						</button>
+
+						<button
+							type="button"
+							title="Delete Layer"
+							onclick="commands.runCommand('deleteLayer', 'Deleted Layer')"
+							class="ui icon button">
+							<div class="icon-file-x"></div>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Toolbar -->
+		<div
+			id="ui-toolbar"
+			class="floating-window toolbar"
+			style="right: 270px; top: 10px">
+			<div class="draggable handle">
+				<span class="line"></span>
+			</div>
+			<div class="lock-indicator" id="toolbar-lock-indicator"></div>
+			<div class="toolbar-section"></div>
+		</div>
+
+		<!-- Canvases -->
+		<div id="layer-render" class="layer-render-target"></div>
+
+		<!-- Overlay -->
+		<canvas id="layer-overlay" class="overlay-canvas"></canvas>
+		<canvas id="layer-debug-overlay" class="overlay-canvas"></canvas>
+
+		<!-- Page Overlay -->
+		<div id="page-overlay-wrapper" class="page-overlay invisible">
+			<div class="page-overlay-window">
+				<div class="title">
+					Settings
+					<button id="settings-btn-close" class="close"></button>
+				</div>
+				<div class="ui separator"></div>
+				<iframe
+					id="page-overlay"
+					src="pages/configuration.html?v=7fca00b"></iframe>
+			</div>
+		</div>
+
+		<!-- Basics -->
+		<script src="js/global.js?v=ac30d16" type="text/javascript"></script>
+
+		<!-- Base Libs -->
+		<script src="js/lib/util.js?v=e82dd04" type="text/javascript"></script>
+		<script src="js/lib/events.js?v=2ab7933" type="text/javascript"></script>
+		<script src="js/lib/input.js?v=aa14afc" type="text/javascript"></script>
+		<script src="js/lib/layers.js?v=a1f8aea" type="text/javascript"></script>
+		<script src="js/lib/commands.js?v=bf23c83" type="text/javascript"></script>
+
+		<script src="js/lib/toolbar.js?v=306d637" type="text/javascript"></script>
+		<script src="js/lib/ui.js?v=fe9b702" type="text/javascript"></script>
+
+		<script
+			src="js/initalize/layers.populate.js?v=8bc8815"
+			type="text/javascript"></script>
+
+		<!-- Configuration -->
+		<script src="js/config.js?v=e0345e0" type="text/javascript"></script>
+		<script src="js/theme.js?v=435cc1b" type="text/javascript"></script>
+
+		<!-- Content -->
+		<script src="js/prompt.js?v=7a1c68c" type="text/javascript"></script>
+		<script src="js/index.js?v=6944460" type="text/javascript"></script>
+
+		<script
+			src="js/ui/floating/history.js?v=fc92d14"
+			type="text/javascript"></script>
+		<script
+			src="js/ui/floating/layers.js?v=8e66543"
+			type="text/javascript"></script>
+
+		<!-- Load Tools -->
+		<script
+			src="js/ui/tool/generic.js?v=3e678e0"
+			type="text/javascript"></script>
+
+		<script src="js/ui/tool/dream.js?v=eb98dc9" type="text/javascript"></script>
+		<script
+			src="js/ui/tool/maskbrush.js?v=1e8a893"
+			type="text/javascript"></script>
+		<script
+			src="js/ui/tool/colorbrush.js?v=3f8c01a"
+			type="text/javascript"></script>
+		<script
+			src="js/ui/tool/select.js?v=f290e83"
+			type="text/javascript"></script>
+		<script src="js/ui/tool/stamp.js?v=4a86ff8" type="text/javascript"></script>
+		<script
+			src="js/ui/tool/interrogate.js?v=e579ff1"
+			type="text/javascript"></script>
+
+		<!-- Initialize -->
+		<script
+			src="js/initalize/shortcuts.populate.js?v=fd01c47"
+			type="text/javascript"></script>
+		<script
+			src="js/initalize/toolbar.populate.js?v=c1ca438"
+			type="text/javascript"></script>
+		<script
+			src="js/initalize/debug.populate.js?v=64ad17f"
+			type="text/javascript"></script>
+		<script
+			src="js/initalize/ui.populate.js?v=b59b288"
+			type="text/javascript"></script>
+
+		<!-- Deals with webui communication -->
+		<script src="js/webui.js?v=8edac89" type="text/javascript"></script>
+	</body>
+</html>
