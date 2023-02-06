@@ -1,9 +1,10 @@
-# stable-diffusion-webui
-stable-diffusion-webui国内定制版
+# stable-diffusion-webui国内定制版
+stable-diffusion-webui
 
 ![](screenshot.png)
 
 # #特性
+# 添加中文支持和部分扩展功能。
 【详细功能展示及图片】(https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Features):
 -原有的txt2img和img2img模式
 -一键安装并运行脚本(但你仍然必须安装python和git)
@@ -93,7 +94,7 @@ stable-diffusion-webui国内定制版
 -从设置界面重新排列UI中的元素
 -
 
-##安装和运行
+## 安装和运行
 确保满足所需的[依赖项](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Dependencies)，并遵循[NVidia](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Install-and-Run-on-NVidia-GPUs)(推荐)和[AMD](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Install-and-Run-on-AMD-GPUs) gpu可用的说明。
 
 或者，使用在线服务(如谷歌Colab):
@@ -107,7 +108,7 @@ stable-diffusion-webui国内定制版
 4. 将稳定扩散检查点(' model.ckpt ')放置在' models/ stable-diffusion '目录中(参见[dependencies](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Dependencies)以获取它)。
 5. 在Windows资源管理器中以普通、非管理员、用户身份运行“web -user.bat”。
 
-##在Linux上自动安装
+## 在Linux上自动安装
 1. 安装依赖项:
 ”“bash
 # Debian-based:
