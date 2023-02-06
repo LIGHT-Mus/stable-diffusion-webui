@@ -1,6 +1,5 @@
 # stable-diffusion-webui
 stable-diffusion-webui国内定制版
-A browser interface based on Gradio library for Stable Diffusion.
 
 ![](screenshot.png)
 
