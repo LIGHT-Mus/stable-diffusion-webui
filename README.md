@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# stable-diffusion-webui
-stable-diffusion-webui国内定制版
 =======
 <<<<<<< HEAD
 # stable-diffusion-webui
